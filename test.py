@@ -8,6 +8,9 @@ def word_count(bot: BOT, message: Message):
     check1 = str(message.command[0])   # t
     check2 = int(message.command[1])   # 1   ChatID
     check3 = int(message.command[2])  # 2   UserID
+    
+    mes_date = None
+    Username = None
 	
 #    print(check1)
 #    print(check2)
@@ -29,8 +32,6 @@ def word_count(bot: BOT, message: Message):
         total += 1
         if total % 200 == 0:
             progress.edit_text(f"`Searching for\nChatID: {ChatID}\nUserID: {UserID}\nprocessed {total} messages...`")
-        mes_date = None
-        Username = None
         if msg.from_user.id:
             if UserID == msg.from_user.id:
                 Username = msg.from_user.username
