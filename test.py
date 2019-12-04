@@ -1,44 +1,46 @@
 from pyrogram import Filters, Message
 from datetime import datetime
-from pyrobot import BOT, LOGGER_GROUP
+from pyrobot import BOT
 
-@BOT.on_message(Filters.command("t", ".") & Filters.me)   # Command: .t ChatID Username
+@BOT.on_message(Filters.command("t", ".") & Filters.me)   # Command: .t ChatID UserID
 def word_count(bot: BOT, message: Message):
     chat = message.chat.id
     check1 = str(message.command[0])   # t
-    check2 = str(message.command[1])   # 1   Chat_ID
-    check3 = str(message.command[2])  # 2   User_ID
+    check2 = int(message.command[1])   # 1   ChatID
+    check3 = int(message.command[2])  # 2   UserID
 	
-    print(check1)
-    print(check2)
-    print(check3)
+#    print(check1)
+#    print(check2)
+#    print(check3)
+    
+    message.delete()
 
-    if not len(message.command) > 1:
-        bot.send_message(LOGGER_GROUP, "Wrong input.............")
-#        message.delete()
+    if not check2 < 1 and check3 > 1:
+        bot.send_message(message.chat.id, "Wrong input! Correct Syntax: .t ChatID UserID")
         return
     else:
         ChatID = int(message.command[1])
-        UserName = str(message.command[2]) 
+        UserID = int(message.command[2]) 
 
-    progress = bot.send_message(LOGGER_GROUP, "`processed 0 messages...`")
+    progress = bot.send_message(message.chat.id, "`processed 0 messages...`")
     total = 0
-#        message.delete()
 
     for msg in bot.iter_history(ChatID, reverse=True):
         total += 1
         if total % 200 == 0:
-            progress.edit_text(f"`processed {total} messages...`")
+            progress.edit_text(f"`Searching for\nChatID: {ChatID}\nUserID: {UserID}\nprocessed {total} messages...`")
         mes_date = None
-        if msg.from_user.username:
-            if UserName in msg.from_user.username:
+        Username = None
+        if msg.from_user.id:
+            if UserID == msg.from_user.id:
+                Username = msg.from_user.username
+                from_chat = bot.get_chat(ChatID)
                 mes_date = msg.date
                 if not mes_date == None:
                    # Calculate Unix to time (first message)
                     date_time_fm = datetime.fromtimestamp(mes_date)
                     dfm = date_time_fm.strftime("%d.%m.%Y, %H:%M:%S")
-                    bot.send_message(LOGGER_GROUP, dfm)
-                    print(dfm)
+                    progress.edit_text(f"`Processed {total} messages.\n@{Username} is in {from_chat.title} since:\n{dfm}`")
                     return
 
     progress.edit_text(out, parse_mode="html")
