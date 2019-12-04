@@ -182,7 +182,22 @@ def when_joined(client: BOT, message: Message):
                    # Calculate Unix to time (first message)
                     date_time_fm = datetime.fromtimestamp(mes_date)
                     dfm = date_time_fm.strftime("%d.%m.%Y, %H:%M:%S")
-                    progress.edit_text(f"`Processed {total} messages.\n@{Username} is in {from_chat.title} since:\n{dfm}`")
-                    return
 
-    progress.edit_text(out, parse_mode="html")
+#                    progress.edit_text(out, parse_mode="html")
+
+#                    message.delete()
+
+                    #Message with Picture
+                    message_out_str = ""
+                    message_out_str += f"Processed {total} messages.\n"
+                    message_out_str += f"<a href='tg://user?id={UserID}'>@{Username}</a> is in @{from_chat.username} since:\n"
+                    message_out_str += f"{dfm}\n"
+                    message_out_str += f"\n"
+    
+                    client.send_message(
+                        message.chat.id,
+                        message_out_str,
+                        parse_mode="html",
+                        disable_notification=True
+                        )
+                    return
