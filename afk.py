@@ -1,7 +1,7 @@
 import sqlite3
 from html import escape, unescape
 from pyrogram import Filters, Message, User
-from pyrobot import BOT, PYRO_DB
+from pyrobot import BOT, PYRO_DB, LOGGER_GROUP
 
 SET_AFKTEXT = """INSERT OR FAIL INTO afk VALUES ("{}", "{}")"""
 GET_AFK = "SELECT afktext, checker FROM afk"
@@ -20,11 +20,11 @@ def set_afk(bot: BOT, message: Message):
     db = sqlite3.connect(PYRO_DB)
     c = db.cursor()
     c.execute(SET_AFKTEXT.format(escape(afk_text), checker))
-    message.edit(f"AFK message set:\n\n{afk_text[1:]}", disable_web_page_preview=True)        
+    message.edit(f"AFK message set:\n{afk_text[1:]}", disable_web_page_preview=True)        
     db.commit()
 
-# Reply at mentioned and private messages
-@BOT.on_message(Filters.mentioned or Filters.private)
+# Reply at private and mentioned messages
+@BOT.on_message(Filters.private | Filters.mentioned, group=1)
 def answer_mentioned(bot: BOT, message: Message):
     db = sqlite3.connect(PYRO_DB)
     c = db.cursor()
@@ -34,12 +34,14 @@ def answer_mentioned(bot: BOT, message: Message):
         mes = str(res[0])[1:]
         check = str(res[1])
         if check == "1":
-            bot.send_message(message.chat.id, f"`Sorry, i'm away from Keyboard!\n{mes}`")
+#            bot.send_message(message.chat.id, f"`Sorry, i'm away from Keyboard!\nReason: {mes}`")
+            bot.send_message(chat_id=message.chat.id, text=f"`Sorry, i'm away from Keyboard!\nReason: {mes}`", reply_to_message_id=message.message_id)
+            bot.send_message(LOGGER_GROUP, f"<b>Sent new away message!!!</b>", parse_mode="html")
     except:
         return
  
  # Automatic switch off AFK
-@BOT.on_message(Filters.outgoing)
+@BOT.on_message(Filters.outgoing, group=-1)
 def set_afk(bot: BOT, message: Message):
     db = sqlite3.connect(PYRO_DB)
     c = db.cursor()
@@ -59,5 +61,7 @@ def set_afk(bot: BOT, message: Message):
             c.execute(SET_AFKOFF.format(escape(afk_text), checker))
             db.commit()
 #            message.edit(f"AFK switched off!\n", disable_web_page_preview=True)
+            if checker == 0:
+                bot.send_message(LOGGER_GROUP, f"AFK mode switched off", parse_mode="html")
     except:
         return   
